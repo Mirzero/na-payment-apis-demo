@@ -17,7 +17,9 @@ class ViewController: UIViewController {
     @IBOutlet weak var placeholderView: UIView!
     
     // Mobile Payments Demo Server
-    fileprivate let DemoServerURLBase = "http://merchant-api-demo.us-west-2.elasticbeanstalk.com"
+    // fileprivate let DemoServerURLBase = "http://merchant-api-demo.us-west-2.elasticbeanstalk.com"
+    fileprivate let DemoServerURLBase = "https://dev-demo.na.bambora.com"
+    
     
     // Apple Pay Merchant Identifier
     fileprivate let ApplePayMerchantID = "merchant.com.beanstream.apbeanstream"
@@ -52,7 +54,7 @@ class ViewController: UIViewController {
 
     // MARK: - Custom action methods
     
-    func paymentButtonAction() {
+    @objc func paymentButtonAction() {
         // Check to make sure payments are supported.
         if !PKPaymentAuthorizationViewController.canMakePayments(usingNetworks: SupportedPaymentNetworks, capabilities: .capability3DS) {
             // Let user know they can not continue with an Apple Pay based transaction...
@@ -92,8 +94,8 @@ class ViewController: UIViewController {
         
         
         let authVC = PKPaymentAuthorizationViewController(paymentRequest: request)
-        authVC.delegate = self
-        present(authVC, animated: true, completion: nil)
+        authVC!.delegate = self
+        present(authVC!, animated: true, completion: nil)
     }
 }
 
@@ -104,6 +106,8 @@ extension ViewController: PKPaymentAuthorizationViewControllerDelegate {
         // Get payment data from the token and Base64 encode it
         let token = payment.token
         let paymentData = token.paymentData
+        print("Token: \(token)");
+        print("Token Payment Data: \(paymentData)");
         let b64TokenStr = paymentData.base64EncodedString(options: NSData.Base64EncodingOptions(rawValue: 0))
         
         let transactionType = self.purchaseTypeSegmentedControl.selectedSegmentIndex == 0 ? "purchase" : "pre-auth"
@@ -135,6 +139,7 @@ extension ViewController: PKPaymentAuthorizationViewControllerDelegate {
         
         self.hud = MBProgressHUD.showAdded(to: self.view, animated: true)
 
+        print(DemoServerURLBase + "/payment/mobile/process/apple-pay");
         Alamofire.request(DemoServerURLBase + "/payment/mobile/process/apple-pay", method: .post, parameters: parameters, encoding: JSONEncoding.default).responseJSON {
             response in
 
